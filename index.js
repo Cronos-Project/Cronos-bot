@@ -1,4 +1,5 @@
 require('dotenv').config();
+const express = require('express');
 const TelegramBot = require('node-telegram-bot-api');
 const schedule = require('node-schedule');
 const { adicionarAgendamento, removerAgendamento } = require('./sheets');
@@ -7,6 +8,8 @@ const conectarMongo = require('./db');
 const Agendamento = require('./models/Agendamento');
 const moment = require('moment');
 
+const app = express();
+const PORT = process.env.PORT || 3000;
 
 const servicosDisponiveis = {
   "Corte": 30,
@@ -14,8 +17,25 @@ const servicosDisponiveis = {
   "Corte + Barba": 45
 };
 
-const bot = new TelegramBot(process.env.TELEGRAM_TOKEN, { polling: true });
-const userStates = {};
+// Cria bot SEM polling
+const bot = new TelegramBot(process.env.TELEGRAM_TOKEN);
+
+// Configura Webhook
+bot.setWebHook(`${process.env.PUBLIC_URL}/bot${process.env.TELEGRAM_TOKEN}`);
+
+// Middleware Express pra JSON
+app.use(express.json());
+
+// Endpoint que o Telegram chama
+app.post(`/bot${process.env.TELEGRAM_TOKEN}`, (req, res) => {
+  bot.processUpdate(req.body);
+  res.sendStatus(200);
+});
+
+// Inicializa o servidor Express
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor rodando na porta ${PORT}`);
+});
 
 (async () => {
   await conectarMongo();
@@ -289,13 +309,3 @@ bot.on('message', async (msg) => {
   }
 });
 
-// keep-alive — um servidor HTTP mínimo, só pra o Render detectar que seu serviço está “escutando” e deixá-lo rodando continuamente
-const http = require('http');
-const PORT = process.env.PORT || 3000;
-
-http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('Bot is running!');
-}).listen(PORT, () => {
-  console.log(`Keep-alive server rodando na porta ${PORT}`);
-});
