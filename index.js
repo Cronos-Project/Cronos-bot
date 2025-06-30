@@ -8,6 +8,8 @@ const conectarMongo = require('./db');
 const Agendamento = require('./models/Agendamento');
 const moment = require('moment');
 
+const userStates = {};
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
