@@ -288,3 +288,14 @@ bot.on('message', async (msg) => {
 
   }
 });
+
+// keep-alive — um servidor HTTP mínimo, só pra o Render detectar que seu serviço está “escutando” e deixá-lo rodando continuamente
+const http = require('http');
+const PORT = process.env.PORT || 3000;
+
+http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
+  res.end('Bot is running!');
+}).listen(PORT, () => {
+  console.log(`Keep-alive server rodando na porta ${PORT}`);
+});
